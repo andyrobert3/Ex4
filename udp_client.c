@@ -61,16 +61,27 @@ int main(int argc, char **argv) {
   // Convert network byte to host byte order
   server_address.sin_port = htons(MYUDP_PORT);
 
-  // // Set server address to internet address
+  // Set server address to internet address
   memcpy(&(server_address.sin_addr.s_addr), *address, sizeof(struct in_addr));
   
   // Writes n zeroed bytes to string s
   bzero(&(server_address.sin_zero), 8); 
 
-  float time_interval_ms = str_client(file, socket_descriptor, (struct sockaddr *)&server_address, sizeof(struct sockaddr_in), &total_packets_size, 3); 
-  float data_rate = total_packets_size / time_interval_ms;
+  int tries = 100;
+  float total_transfer_time_ms = 0;
+  
+  while (tries >= 0) {
+    float time_interval_ms = str_client(file, socket_descriptor, (struct sockaddr *)&server_address, sizeof(struct sockaddr_in), &total_packets_size, NUMPACKETSIZES); 
+    float data_rate = total_packets_size / time_interval_ms;
 
-  printf("Transfer time: %.3f ms\nData sent: %ld bytes\nData rate: %.0f KB/s\n", time_interval_ms, total_packets_size, data_rate);
+    total_transfer_time_ms += time_interval_ms;
+
+    printf("Transfer time: %.3f ms\nData sent: %ld bytes\nData rate: %.0f KB/s\n", time_interval_ms, total_packets_size, data_rate);
+    tries--;
+  }
+  float avg_throughput = ( (float) total_packets_size * 100.0 ) / total_transfer_time_ms;
+
+  printf("Average throughput: %.3f\n", avg_throughput);
 
   exit(0);
 }

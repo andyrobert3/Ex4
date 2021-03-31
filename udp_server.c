@@ -30,7 +30,7 @@ int main(void) {
 
   printf("Start receiving data!\n");
   while (1) {
-    str_server(socket_descriptor, 3);
+    str_server(socket_descriptor, NUMPACKETSIZES  );
 
     FILE *original = fopen(ORIGINAL_FILE_NAME, "r");
     FILE *received = fopen(RECEIVED_FILE_NAME, "r");
@@ -60,7 +60,7 @@ void str_server(int socket_descriptor, int num_packet_sizes) {
   int curr_packet_idx = 0;
 
   // Buffer size is at least file size limit
-  int buffer[BUFSIZ * 100];
+  int buffer[BUFSIZ * 1000];
   int is_eof = 0; 
   
   int bytes_received = 0;
