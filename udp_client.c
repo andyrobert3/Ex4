@@ -1,7 +1,7 @@
 #include "headsock.h"
 #include <stdbool.h>
 
-float str_client(FILE *file, int socket_descriptor, struct sockaddr *address, unsigned int address_len, long *total_packets_size);
+float str_client(FILE *file, int socket_descriptor, struct sockaddr *address, unsigned int address_len, long *total_packets_size, int num_packet_sizes);
 float calc_time_interval(struct timeval *t1, struct timeval *t2);
 
 int main(int argc, char **argv) {
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   // Writes n zeroed bytes to string s
   bzero(&(server_address.sin_zero), 8); 
 
-  float time_interval_ms = str_client(file, socket_descriptor, (struct sockaddr *)&server_address, sizeof(struct sockaddr_in), &total_packets_size); 
+  float time_interval_ms = str_client(file, socket_descriptor, (struct sockaddr *)&server_address, sizeof(struct sockaddr_in), &total_packets_size, 3); 
   float data_rate = total_packets_size / time_interval_ms;
 
   printf("Transfer time: %.3f ms\nData sent: %ld bytes\nData rate: %.0f KB/s\n", time_interval_ms, total_packets_size, data_rate);
@@ -79,8 +79,13 @@ int main(int argc, char **argv) {
  * Sends file in chunks of DATALEN via UDP
  * Returns time_interval between start sending and done in seconds 
  */ 
-float str_client(FILE *file, int socket_descriptor, struct sockaddr *server_address, unsigned int address_length, long *total_packets_size) {
-  int packet_sizes[NUMPACKETSIZES] = { 1 * DATALEN, 2 * DATALEN, 3 * DATALEN };
+float str_client(FILE *file, int socket_descriptor, struct sockaddr *server_address, unsigned int address_length, long *total_packets_size, int num_packet_sizes) {
+  int packet_sizes[num_packet_sizes];
+
+  for (int i = 0; i < num_packet_sizes; i++) {
+    packet_sizes[i] = (i + 1) * DATALEN;
+  }
+
   int packet_to_send_idx = 0;
   int packet_to_send_size;
   int bytes_sent;
@@ -162,7 +167,7 @@ float str_client(FILE *file, int socket_descriptor, struct sockaddr *server_addr
 
     // multiple of DATALEN: 1 -> 2 -> 3 -> 1 -> ...
     packet_to_send_idx++;
-    packet_to_send_idx %= NUMPACKETSIZES;
+    packet_to_send_idx %= num_packet_sizes;
     
     sent_file_size += packet_to_send_size;
   }

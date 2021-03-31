@@ -1,6 +1,6 @@
 #include "headsock.h"
 
-void str_server(int socket_descriptor);
+void str_server(int socket_descriptor, int num_packet_sizes);
 void compare_files(FILE *file1, FILE *file2);
 
 const char * RECEIVED_FILE_NAME = "myUDPreceive.txt";
@@ -30,7 +30,7 @@ int main(void) {
 
   printf("Start receiving data!\n");
   while (1) {
-    str_server(socket_descriptor);
+    str_server(socket_descriptor, 3);
 
     FILE *original = fopen(ORIGINAL_FILE_NAME, "r");
     FILE *received = fopen(RECEIVED_FILE_NAME, "r");
@@ -49,10 +49,14 @@ int main(void) {
   exit(0);
 }
 
-void str_server(int socket_descriptor) {
+void str_server(int socket_descriptor, int num_packet_sizes) {
   FILE *file;
 
-  int packet_sizes[NUMPACKETSIZES] = { 1 * DATALEN, 2 * DATALEN, 3 * DATALEN };
+  int packet_sizes[num_packet_sizes];
+  for (int i = 0; i < num_packet_sizes; i++) {
+    packet_sizes[i] = (i + 1) * DATALEN;
+  }
+
   int curr_packet_idx = 0;
 
   // Buffer size is at least file size limit
@@ -104,7 +108,7 @@ void str_server(int socket_descriptor) {
     }
 
     curr_packet_idx++;
-    curr_packet_idx %= NUMPACKETSIZES;
+    curr_packet_idx %= num_packet_sizes;
     printf("size: %d\n", curr_packet_idx);
   }
  
